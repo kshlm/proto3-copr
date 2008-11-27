@@ -12,7 +12,7 @@
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
 Version:        2.0.2
-Release:        4%{?dist}
+Release:        5%{?dist}
 License:        BSD
 Group:          Development/Libraries
 Source:         http://protobuf.googlecode.com/files/%{name}-%{version}.tar.bz2
@@ -28,6 +28,7 @@ BuildRequires:  automake autoconf libtool pkgconfig
 %if !%{without_gtest}
 BuildRequires:  gtest-devel
 %endif
+ExcludeArch:    ppc64 ppc
 
 %description
 Protocol Buffers are a way of encoding structured data in an efficient
@@ -265,6 +266,10 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Nov 27 2008 Lev Shamardin <shamardin@gmail.com> - 2.0.2-5
+- Added ExcludeArch: ppc64, because of missing maven2 on ppc64.
+- Added ExcludeArch: ppc because of missing java-devel >= 1.6.
+
 * Sat Nov 22 2008 Lev Shamardin <shamardin@gmail.com> - 2.0.2-4
 - Added patch from subversion r70 to workaround gcc 4.3.0 bug (see
   http://code.google.com/p/protobuf/issues/detail?id=45 for more
