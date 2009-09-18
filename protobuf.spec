@@ -12,18 +12,14 @@
 
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
-Version:        2.0.2
-Release:        8%{?dist}
+Version:        2.2.0
+Release:        1%{?dist}
 License:        BSD
 Group:          Development/Libraries
 Source:         http://protobuf.googlecode.com/files/%{name}-%{version}.tar.bz2
-Source1:        protobuf.pc.in
-Source2:        ftdetect-proto.vim
-Patch0:         protobuf-pkgconfig-autotools.patch
-Patch1:         protobuf-fedora-gtest.patch
+Source1:        ftdetect-proto.vim
+Patch1:         protobuf-%{version}-fedora-gtest.patch
 Patch2:         protobuf-java-notests.patch
-Patch3:         protobuf-gcc-4.3.0.patch
-Patch4:         protobuf-2.0.2-includes.patch
 URL:            http://code.google.com/p/protobuf/
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires:  automake autoconf libtool pkgconfig 
@@ -71,6 +67,43 @@ Requires: %{name} = %{version}-%{release}
 
 %description static
 Static libraries for Protocol Buffers
+
+%package lite
+Summary: Protocol Buffers LITE_RUNTIME libraries
+Group: Development/Libraries
+
+%description lite
+Protocol Buffers built with optimize_for = LITE_RUNTIME.
+
+The "optimize_for = LITE_RUNTIME" option causes the compiler to generate code
+which only depends libprotobuf-lite, which is much smaller than libprotobuf but
+lacks descriptors, reflection, and some other features.
+
+%package lite-devel
+Summary: Protocol Buffers LITE_RUNTIME development libraries
+Requires: %{name}-devel = %{version}-%{release}
+Requires: %{name}-lite = %{version}-%{release}
+
+%description lite-devel
+This package contains development libraries built with 
+optimize_for = LITE_RUNTIME.
+
+The "optimize_for = LITE_RUNTIME" option causes the compiler to generate code
+which only depends libprotobuf-lite, which is much smaller than libprotobuf but
+lacks descriptors, reflection, and some other features.
+
+%package lite-static
+Summary: Static development files for %{name}-lite
+Group: Development/Libraries
+Requires: %{name}-devel = %{version}-%{release}
+
+%description lite-static
+This package contains static development libraries built with 
+optimize_for = LITE_RUNTIME.
+
+The "optimize_for = LITE_RUNTIME" option causes the compiler to generate code
+which only depends libprotobuf-lite, which is much smaller than libprotobuf but
+lacks descriptors, reflection, and some other features.
 
 %if %{with_python}
 %package python
@@ -132,21 +165,19 @@ This package contains the API documentation for %{name}-java.
 
 %prep
 %setup -q
-%patch0 -p1
 %if !%{without_gtest}
-rm -rf src/gtest
-%patch1 -p1
+rm -rf gtest
+%patch1 -p2
 %endif
-cp -p %{SOURCE1} .
 chmod 644 examples/*
 %if %{with_java}
 %patch2
 rm -rf java/src/test
 %endif
-%patch3 -p0
-%patch4 -p1
 
 %build
+iconv -f iso8859-1 -t utf-8 CONTRIBUTORS.txt > CONTRIBUTORS.txt.utf8
+mv CONTRIBUTORS.txt.utf8 CONTRIBUTORS.txt
 ./autogen.sh
 %configure
 
@@ -174,12 +205,13 @@ make %{?_smp_mflags} check
 rm -rf %{buildroot}
 make %{?_smp_mflags} install DESTDIR=%{buildroot} STRIPBINARIES=no INSTALL="%{__install} -p" CPPROG="cp -p"
 find %{buildroot} -type f -name "*.la" -exec rm -f {} \;
+
 %if %{with_python}
 pushd python
 python ./setup.py install --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
 popd
 %endif
-install -p -m 644 -D %{SOURCE2} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
+install -p -m 644 -D %{SOURCE1} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
 install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/syntax/proto.vim
 
 %if %{with_java}
@@ -198,6 +230,9 @@ install -pm 644 pom.xml %{buildroot}%{_datadir}/maven2/poms/JPP-%{name}.pom
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
+
+%post lite -p /sbin/ldconfig
+%postun lite -p /sbin/ldconfig
 
 %post compiler -p /sbin/ldconfig
 %postun compiler -p /sbin/ldconfig
@@ -238,13 +273,26 @@ rm -rf %{buildroot}
 %{_libdir}/libprotobuf.a
 %{_libdir}/libprotoc.a
 
+%files lite
+%defattr(-, root, root, -)
+%{_libdir}/libprotobuf-lite.so.*
+
+%files lite-devel
+%defattr(-, root, root, -)
+%{_libdir}/libprotobuf-lite.so
+%{_libdir}/pkgconfig/protobuf-lite.pc
+
+%files lite-static
+%defattr(-, root, root, -)
+%{_libdir}/libprotobuf-lite.a
+
 %if %{with_python}
 %files python
 %defattr(-, root, root, -)
 %dir %{python_sitelib}/google
 %{python_sitelib}/google/protobuf/
-%{python_sitelib}/protobuf-2.0.2-py2.6.egg-info/
-%{python_sitelib}/protobuf-2.0.2-py2.6-nspkg.pth
+%{python_sitelib}/protobuf-%{version}-py2.6.egg-info/
+%{python_sitelib}/protobuf-%{version}-py2.6-nspkg.pth
 %doc python/README.txt 
 %doc examples/add_person.py examples/list_people.py examples/addressbook.proto
 %endif
@@ -268,6 +316,10 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Fri Sep 18 2009 Lev Shamardin <shamardin@gmail.com> - 2.2.0-1
+- Upgraded to upstream protobuf-2.2.0
+- New -lite packages
+
 * Sun Mar 01 2009 Caolán McNamra <caolanm@redhat.com> - 2.0.2-8
 - add stdio.h for sprintf, perror, etc.
 
