@@ -13,7 +13,7 @@
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
 Version:        2.2.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        BSD
 Group:          Development/Libraries
 Source:         http://protobuf.googlecode.com/files/%{name}-%{version}.tar.bz2
@@ -178,6 +178,7 @@ rm -rf java/src/test
 %build
 iconv -f iso8859-1 -t utf-8 CONTRIBUTORS.txt > CONTRIBUTORS.txt.utf8
 mv CONTRIBUTORS.txt.utf8 CONTRIBUTORS.txt
+export PTHREAD_LIBS="-lpthread"
 ./autogen.sh
 %configure
 
@@ -316,6 +317,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Wed Sep 30 2009 Lev Shamardin <shamardin@gmail.com> - 2.2.0-2
+- added export PTHREAD_LIBS="-lpthread"
+
 * Fri Sep 18 2009 Lev Shamardin <shamardin@gmail.com> - 2.2.0-1
 - Upgraded to upstream protobuf-2.2.0
 - New -lite packages
