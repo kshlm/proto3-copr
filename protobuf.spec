@@ -12,14 +12,14 @@
 
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
-Version:        2.2.0
-Release:        2%{?dist}
+Version:        2.3.0
+Release:        1%{?dist}
 License:        BSD
 Group:          Development/Libraries
 Source:         http://protobuf.googlecode.com/files/%{name}-%{version}.tar.bz2
 Source1:        ftdetect-proto.vim
-Patch1:         protobuf-%{version}-fedora-gtest.patch
-Patch2:         protobuf-java-notests.patch
+Patch1:		protobuf-2.3.0-fedora-gtest.patch
+Patch2:		protobuf-java-fixes.patch
 URL:            http://code.google.com/p/protobuf/
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires:  automake autoconf libtool pkgconfig 
@@ -167,7 +167,7 @@ This package contains the API documentation for %{name}-java.
 %setup -q
 %if !%{without_gtest}
 rm -rf gtest
-%patch1 -p2
+%patch1 -p1
 %endif
 chmod 644 examples/*
 %if %{with_java}
@@ -317,6 +317,9 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Tue May 4 2010 Conrad Meyer <konrad@tylerc.org> - 2.3.0-1
+- bump to 2.3.0
+
 * Wed Sep 30 2009 Lev Shamardin <shamardin@gmail.com> - 2.2.0-2
 - added export PTHREAD_LIBS="-lpthread"
 
