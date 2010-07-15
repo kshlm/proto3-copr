@@ -1,19 +1,18 @@
-# don't build -python subpackage
-%define with_python   %{?_without_python: 0} %{?!_without_python: 1}
-# don't build -java subpackages
-#%define with_java     %{?_without_java:   0} %{?!_without_java:   1}
-%define with_java 0
-# don't require gtest for building
-%define without_gtest %{?_without_gtest:  1} %{?!_without_gtest:  0}
+# Build -python subpackage
+%bcond_without python
+# Build -java subpackage
+%bcond_without java
+# Don't require gtest
+%bcond_with gtest
 
-%if %{with_python}
+%if %{with python}
 %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 %endif
 
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
 Version:        2.3.0
-Release:        1%{?dist}
+Release:        3%{?dist}
 License:        BSD
 Group:          Development/Libraries
 Source:         http://protobuf.googlecode.com/files/%{name}-%{version}.tar.bz2
@@ -23,7 +22,7 @@ Patch2:		protobuf-java-fixes.patch
 URL:            http://code.google.com/p/protobuf/
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires:  automake autoconf libtool pkgconfig 
-%if !%{without_gtest}
+%if %{with gtest}
 BuildRequires:  gtest-devel
 %endif
 
@@ -105,7 +104,7 @@ The "optimize_for = LITE_RUNTIME" option causes the compiler to generate code
 which only depends libprotobuf-lite, which is much smaller than libprotobuf but
 lacks descriptors, reflection, and some other features.
 
-%if %{with_python}
+%if %{with python}
 %package python
 Summary: Python bindings for Google Protocol Buffers
 Group: Development/Languages
@@ -127,7 +126,7 @@ Requires: vim-enhanced
 This package contains syntax highlighting for Google Protocol Buffers
 descriptions in Vim editor
 
-%if %{with_java}
+%if %{with java}
 %package java
 Summary: Java Protocol Buffers runtime library
 Group:   Development/Languages
@@ -138,7 +137,9 @@ BuildRequires:    maven2-plugin-compiler
 BuildRequires:    maven2-plugin-install
 BuildRequires:    maven2-plugin-jar
 BuildRequires:    maven2-plugin-javadoc
-BuildRequires:    maven2-plugin-release
+#BuildRequires:    maven2-plugin-release
+BuildRequires:    maven-doxia
+BuildRequires:    maven-doxia-sitetools
 BuildRequires:    maven2-plugin-resources
 BuildRequires:    maven2-plugin-surefire
 BuildRequires:    maven2-plugin-antrun
@@ -165,13 +166,13 @@ This package contains the API documentation for %{name}-java.
 
 %prep
 %setup -q
-%if !%{without_gtest}
+%if %{with gtest}
 rm -rf gtest
 %patch1 -p1
 %endif
 chmod 644 examples/*
-%if %{with_java}
-%patch2
+%if %{with java}
+%patch2 -p1
 rm -rf java/src/test
 %endif
 
@@ -184,14 +185,14 @@ export PTHREAD_LIBS="-lpthread"
 
 make %{?_smp_mflags}
 
-%if %{with_python}
+%if %{with python}
 pushd python
 python ./setup.py build
 sed -i -e 1d build/lib/google/protobuf/descriptor_pb2.py
 popd
 %endif
 
-%if %{with_java}
+%if %{with java}
 pushd java
 export MAVEN_REPO_LOCAL=$(pwd)/.m2/repository
 mkdir -p $MAVEN_REPO_LOCAL
@@ -207,7 +208,7 @@ rm -rf %{buildroot}
 make %{?_smp_mflags} install DESTDIR=%{buildroot} STRIPBINARIES=no INSTALL="%{__install} -p" CPPROG="cp -p"
 find %{buildroot} -type f -name "*.la" -exec rm -f {} \;
 
-%if %{with_python}
+%if %{with python}
 pushd python
 python ./setup.py install --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
 popd
@@ -215,7 +216,7 @@ popd
 install -p -m 644 -D %{SOURCE1} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
 install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/syntax/proto.vim
 
-%if %{with_java}
+%if %{with java}
 pushd java
 install -d -m 755 %{buildroot}%{_javadir}
 install -pm 644 target/%{name}-java-%{version}.jar %{buildroot}%{_javadir}/%{name}-%{version}.jar
@@ -238,7 +239,7 @@ install -pm 644 pom.xml %{buildroot}%{_datadir}/maven2/poms/JPP-%{name}.pom
 %post compiler -p /sbin/ldconfig
 %postun compiler -p /sbin/ldconfig
 
-%if %{with_java}
+%if %{with java}
 %post java
 %update_maven_depmap
 
@@ -287,7 +288,7 @@ rm -rf %{buildroot}
 %defattr(-, root, root, -)
 %{_libdir}/libprotobuf-lite.a
 
-%if %{with_python}
+%if %{with python}
 %files python
 %defattr(-, root, root, -)
 %dir %{python_sitelib}/google
@@ -303,7 +304,7 @@ rm -rf %{buildroot}
 %{_datadir}/vim/vimfiles/ftdetect/proto.vim
 %{_datadir}/vim/vimfiles/syntax/proto.vim
 
-%if %{with_java}
+%if %{with java}
 %files java
 %defattr(-, root, root, -)
 %{_datadir}/maven2/poms/JPP-protobuf.pom
@@ -317,6 +318,12 @@ rm -rf %{buildroot}
 %endif
 
 %changelog
+* Thu Jul 15 2010 James Laska <jlaska@redhat.com> - 2.3.0-3
+- Correct use of %bcond macros
+
+* Wed Jul 14 2010 James Laska <jlaska@redhat.com> - 2.3.0-2
+- Enable python and java sub-packages
+
 * Tue May 4 2010 Conrad Meyer <konrad@tylerc.org> - 2.3.0-1
 - bump to 2.3.0
 
