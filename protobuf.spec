@@ -8,7 +8,7 @@
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
 Version:        3.0.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        BSD
 Group:          Development/Libraries
 Source:         https://github.com/google/protobuf/releases/download/v%{version}/protobuf-cpp-%{version}.tar.gz
@@ -224,6 +224,9 @@ install -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{emacs_startdir}
 %{emacs_lispdir}/protobuf-mode.el
 
 %changelog
+* Mon Aug 29 2016 Kaushal M <kshlmster@gmail.com> 3.0.0-2
+- new package built with tito
+
 * Mon Aug 29 2016 Kaushal M <kshlmster@gmail.com>
 - Update to 3.0.0
 
