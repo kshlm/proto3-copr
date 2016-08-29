@@ -1,7 +1,3 @@
-# Build -python subpackage
-%bcond_without python
-# Build -java subpackage
-%bcond_without java
 # Don't require gtest
 %bcond_with gtest
 
@@ -27,7 +23,6 @@ BuildRequires:  emacs-el >= 24.1
 %if %{with gtest}
 BuildRequires:  gtest-devel
 %endif
-BuildRequires:  mvn(org.easymock:easymock)
 
 %description
 Protocol Buffers are a way of encoding structured data in an efficient
@@ -108,21 +103,6 @@ The "optimize_for = LITE_RUNTIME" option causes the compiler to generate code
 which only depends libprotobuf-lite, which is much smaller than libprotobuf but
 lacks descriptors, reflection, and some other features.
 
-%if %{with python}
-%package python
-Summary: Python bindings for Google Protocol Buffers
-Group: Development/Languages
-BuildRequires: python-devel
-BuildRequires: python-setuptools
-# For tests
-BuildRequires: python-google-apputils
-Conflicts: %{name}-compiler > %{version}
-Conflicts: %{name}-compiler < %{version}
-
-%description python
-This package contains Python libraries for Google Protocol Buffers
-%endif
-
 %package vim
 Summary: Vim syntax highlighting for Google Protocol Buffers descriptions
 Group: Development/Libraries
@@ -152,29 +132,6 @@ under GNU Emacs. You do not need to install this package to use
 %{pkgname}-emacs.
 
 
-%if %{with java}
-%package java
-Summary: Java Protocol Buffers runtime library
-Group:   Development/Languages
-BuildRequires:    maven-local
-BuildRequires:    mvn(org.apache.felix:maven-bundle-plugin)
-BuildRequires:    mvn(org.apache.maven.plugins:maven-antrun-plugin)
-Conflicts:        %{name}-compiler > %{version}
-Conflicts:        %{name}-compiler < %{version}
-
-%description java
-This package contains Java Protocol Buffers runtime library.
-
-%package javadoc
-Summary: Javadocs for %{name}-java
-Group:   Documentation
-Requires: %{name}-java = %{version}-%{release}
-
-%description javadoc
-This package contains the API documentation for %{name}-java.
-
-%endif
-
 %prep
 %setup -q
 %patch0 -p1 -b .emacs
@@ -183,11 +140,6 @@ rm -rf gtest
 %patch1 -p1 -b .gtest
 %endif
 chmod 644 examples/*
-%if %{with java}
-%pom_remove_parent java/pom.xml
-%pom_remove_dep org.easymock:easymockclassextension java/pom.xml
-rm -rf java/src/test
-%endif
 
 %build
 iconv -f iso8859-1 -t utf-8 CONTRIBUTORS.txt > CONTRIBUTORS.txt.utf8
@@ -197,20 +149,6 @@ export PTHREAD_LIBS="-lpthread"
 %configure
 
 make %{?_smp_mflags}
-
-%if %{with python}
-pushd python
-python ./setup.py build
-sed -i -e 1d build/lib/google/protobuf/descriptor_pb2.py
-popd
-%endif
-
-%if %{with java}
-pushd java
-%mvn_file : %{name}
-%mvn_build
-popd
-%endif
 
 emacs -batch -f batch-byte-compile editors/protobuf-mode.el
 
@@ -222,19 +160,8 @@ rm -rf %{buildroot}
 make %{?_smp_mflags} install DESTDIR=%{buildroot} STRIPBINARIES=no INSTALL="%{__install} -p" CPPROG="cp -p"
 find %{buildroot} -type f -name "*.la" -exec rm -f {} \;
 
-%if %{with python}
-pushd python
-python ./setup.py install --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
-popd
-%endif
 install -p -m 644 -D %{SOURCE1} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
 install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/syntax/proto.vim
-
-%if %{with java}
-pushd java
-%mvn_install
-popd
-%endif
 
 mkdir -p $RPM_BUILD_ROOT%{emacs_lispdir}
 mkdir -p $RPM_BUILD_ROOT%{emacs_startdir}
@@ -285,16 +212,6 @@ install -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{emacs_startdir}
 %files lite-static
 %{_libdir}/libprotobuf-lite.a
 
-%if %{with python}
-%files python
-%dir %{python_sitelib}/google
-%{python_sitelib}/google/protobuf/
-%{python_sitelib}/protobuf-%{version}-py2.?.egg-info/
-%{python_sitelib}/protobuf-%{version}-py2.?-nspkg.pth
-%doc python/README.txt
-%doc examples/add_person.py examples/list_people.py examples/addressbook.proto
-%endif
-
 %files vim
 %{_datadir}/vim/vimfiles/ftdetect/proto.vim
 %{_datadir}/vim/vimfiles/syntax/proto.vim
@@ -305,13 +222,6 @@ install -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{emacs_startdir}
 
 %files emacs-el
 %{emacs_lispdir}/protobuf-mode.el
-
-%if %{with java}
-%files java -f java/.mfiles
-%doc examples/AddPerson.java examples/ListPeople.java
-
-%files javadoc -f java/.mfiles-javadoc
-%endif
 
 %changelog
 * Mon Aug 29 2016 Kaushal M <kshlmster@gmail.com>
