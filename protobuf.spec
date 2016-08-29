@@ -11,11 +11,11 @@
 
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
-Version:        2.6.1
-Release:        5%{?dist}
+Version:        3.0.0
+Release:        1%{?dist}
 License:        BSD
 Group:          Development/Libraries
-Source:         https://github.com/google/protobuf/releases/download/v%{version}/protobuf-%{version}.tar.bz2
+Source:         https://github.com/google/protobuf/releases/download/v%{version}/protobuf-cpp-%{version}.tar.gz
 Source1:        ftdetect-proto.vim
 Source2:        protobuf-init.el
 Patch0:         protobuf-2.5.0-emacs-24.4.patch
@@ -314,6 +314,9 @@ install -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{emacs_startdir}
 %endif
 
 %changelog
+* Mon Aug 29 2016 Kaushal M <kshlmster@gmail.com>
+- Update to 3.0.0
+
 * Tue Jul 19 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.6.1-5
 - https://fedoraproject.org/wiki/Changes/Automatic_Provides_for_Python_RPM_Packages
 
