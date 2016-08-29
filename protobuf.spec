@@ -8,14 +8,14 @@
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
 Version:        3.0.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        BSD
 Group:          Development/Libraries
 Source:         https://github.com/google/protobuf/releases/download/v%{version}/protobuf-cpp-%{version}.tar.gz
 Source1:        ftdetect-proto.vim
 Source2:        protobuf-init.el
-Patch0:         protobuf-2.5.0-emacs-24.4.patch
-Patch1:         protobuf-2.5.0-fedora-gtest.patch
+#Patch0:         protobuf-2.5.0-emacs-24.4.patch
+#Patch1:         protobuf-2.5.0-fedora-gtest.patch
 URL:            https://github.com/google/protobuf
 BuildRequires:  automake autoconf libtool pkgconfig zlib-devel
 BuildRequires:  emacs(bin)
@@ -134,10 +134,10 @@ under GNU Emacs. You do not need to install this package to use
 
 %prep
 %setup -q
-%patch0 -p1 -b .emacs
+#%patch0 -p1 -b .emacs
 %if %{with gtest}
 rm -rf gtest
-%patch1 -p1 -b .gtest
+#%patch1 -p1 -b .gtest
 %endif
 chmod 644 examples/*
 
@@ -152,8 +152,8 @@ make %{?_smp_mflags}
 
 emacs -batch -f batch-byte-compile editors/protobuf-mode.el
 
-%check
-make %{?_smp_mflags} check
+#%check
+#make %{?_smp_mflags} check
 
 %install
 rm -rf %{buildroot}
@@ -224,6 +224,11 @@ install -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{emacs_startdir}
 %{emacs_lispdir}/protobuf-mode.el
 
 %changelog
+* Mon Aug 29 2016 Kaushal M <kshlmster@gmail.com> 3.0.0-3
+- Don't apply emacs and gtest patches.
+- Don't build emacs packages
+- Don't check
+
 * Mon Aug 29 2016 Kaushal M <kshlmster@gmail.com> 3.0.0-2
 - new package built with tito
 
