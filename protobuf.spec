@@ -1,10 +1,3 @@
-# Don't require gtest
-%bcond_with gtest
-
-%global emacs_version %(pkg-config emacs --modversion)
-%global emacs_lispdir %(pkg-config emacs --variable sitepkglispdir)
-%global emacs_startdir %(pkg-config emacs --variable sitestartdir)
-
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
 Version:        3.0.0
@@ -14,15 +7,8 @@ Group:          Development/Libraries
 Source:         https://github.com/google/protobuf/releases/download/v%{version}/protobuf-cpp-%{version}.tar.gz
 Source1:        ftdetect-proto.vim
 Source2:        protobuf-init.el
-#Patch0:         protobuf-2.5.0-emacs-24.4.patch
-#Patch1:         protobuf-2.5.0-fedora-gtest.patch
 URL:            https://github.com/google/protobuf
 BuildRequires:  automake autoconf libtool pkgconfig zlib-devel
-BuildRequires:  emacs(bin)
-BuildRequires:  emacs-el >= 24.1
-%if %{with gtest}
-BuildRequires:  gtest-devel
-%endif
 
 %description
 Protocol Buffers are a way of encoding structured data in an efficient
@@ -112,34 +98,8 @@ Requires: vim-enhanced
 This package contains syntax highlighting for Google Protocol Buffers
 descriptions in Vim editor
 
-%package emacs
-Summary: Emacs mode for Google Protocol Buffers descriptions
-Group: Applications/Editors
-Requires: emacs(bin) >= 0%{emacs_version}
-
-%description emacs
-This package contains syntax highlighting for Google Protocol Buffers
-descriptions in the Emacs editor.
-
-%package emacs-el
-Summary: Elisp source files for Google protobuf Emacs mode
-Group: Applications/Editors
-Requires: protobuf-emacs = %{version}
-
-%description emacs-el
-This package contains the elisp source files for %{pkgname}-emacs
-under GNU Emacs. You do not need to install this package to use
-%{pkgname}-emacs.
-
-
 %prep
 %setup -q
-#%patch0 -p1 -b .emacs
-%if %{with gtest}
-rm -rf gtest
-#%patch1 -p1 -b .gtest
-%endif
-chmod 644 examples/*
 
 %build
 iconv -f iso8859-1 -t utf-8 CONTRIBUTORS.txt > CONTRIBUTORS.txt.utf8
@@ -150,11 +110,6 @@ export PTHREAD_LIBS="-lpthread"
 
 make %{?_smp_mflags}
 
-emacs -batch -f batch-byte-compile editors/protobuf-mode.el
-
-#%check
-#make %{?_smp_mflags} check
-
 %install
 rm -rf %{buildroot}
 make %{?_smp_mflags} install DESTDIR=%{buildroot} STRIPBINARIES=no INSTALL="%{__install} -p" CPPROG="cp -p"
@@ -162,13 +117,6 @@ find %{buildroot} -type f -name "*.la" -exec rm -f {} \;
 
 install -p -m 644 -D %{SOURCE1} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
 install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/syntax/proto.vim
-
-mkdir -p $RPM_BUILD_ROOT%{emacs_lispdir}
-mkdir -p $RPM_BUILD_ROOT%{emacs_startdir}
-install -p -m 0644 editors/protobuf-mode.el $RPM_BUILD_ROOT%{emacs_lispdir}
-install -p -m 0644 editors/protobuf-mode.elc $RPM_BUILD_ROOT%{emacs_lispdir}
-install -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{emacs_startdir}
-
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
@@ -215,13 +163,6 @@ install -p -m 0644 %{SOURCE2} $RPM_BUILD_ROOT%{emacs_startdir}
 %files vim
 %{_datadir}/vim/vimfiles/ftdetect/proto.vim
 %{_datadir}/vim/vimfiles/syntax/proto.vim
-
-%files emacs
-%{emacs_startdir}/protobuf-init.el
-%{emacs_lispdir}/protobuf-mode.elc
-
-%files emacs-el
-%{emacs_lispdir}/protobuf-mode.el
 
 %changelog
 * Mon Aug 29 2016 Kaushal M <kshlmster@gmail.com> 3.0.0-3
