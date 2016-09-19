@@ -1,12 +1,10 @@
 Summary:        Protocol Buffers - Google's data interchange format
 Name:           protobuf
-Version:        3.0.0
+Version:        3.0.2
 Release:        3%{?dist}
 License:        BSD
 Group:          Development/Libraries
 Source:         https://github.com/google/protobuf/releases/download/v%{version}/protobuf-cpp-%{version}.tar.gz
-Source1:        ftdetect-proto.vim
-Source2:        protobuf-init.el
 URL:            https://github.com/google/protobuf
 BuildRequires:  automake autoconf libtool pkgconfig zlib-devel
 
@@ -89,15 +87,6 @@ The "optimize_for = LITE_RUNTIME" option causes the compiler to generate code
 which only depends libprotobuf-lite, which is much smaller than libprotobuf but
 lacks descriptors, reflection, and some other features.
 
-%package vim
-Summary: Vim syntax highlighting for Google Protocol Buffers descriptions
-Group: Development/Libraries
-Requires: vim-enhanced
-
-%description vim
-This package contains syntax highlighting for Google Protocol Buffers
-descriptions in Vim editor
-
 %prep
 %setup -q
 
@@ -114,9 +103,6 @@ make %{?_smp_mflags}
 rm -rf %{buildroot}
 make %{?_smp_mflags} install DESTDIR=%{buildroot} STRIPBINARIES=no INSTALL="%{__install} -p" CPPROG="cp -p"
 find %{buildroot} -type f -name "*.la" -exec rm -f {} \;
-
-install -p -m 644 -D %{SOURCE1} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
-install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/syntax/proto.vim
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
@@ -159,10 +145,6 @@ install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/synt
 
 %files lite-static
 %{_libdir}/libprotobuf-lite.a
-
-%files vim
-%{_datadir}/vim/vimfiles/ftdetect/proto.vim
-%{_datadir}/vim/vimfiles/syntax/proto.vim
 
 %changelog
 * Mon Aug 29 2016 Kaushal M <kshlmster@gmail.com> 3.0.0-3
